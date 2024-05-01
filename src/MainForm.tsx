@@ -10,54 +10,47 @@ import {
   Input,
   Text,
 } from '@chakra-ui/react'
-
-type TMainForm = {
-  /** metraż mieszkania */
-  livingArea: number
-  price: number
-}
+import { formatPrice } from './utils/formatPrice.ts'
+import { TMainForm } from './types.ts'
+import { formFields, formFieldsIds } from './constants.ts'
 
 export const MainForm = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-  } = useForm<TMainForm>()
-  const onSubmit = (data: TMainForm) => console.log(data)
+  const { register, watch } = useForm<TMainForm>()
 
-  /* wkład własny */
   const downPayment = 0.2 * watch('price')
   const pricePerSquareMeter = watch('price') / watch('livingArea')
+  const mortgage = watch('price') - downPayment
+  const renovationCosts = watch('livingArea') * watch('renovationCostsPerM2')
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <VStack align="stretch">
-        <Card mt="2">
+    <form>
+      <VStack align="stretch" spacing="6">
+        <Card mt="10">
           <CardHeader>
             <Heading size="md">Dane wejściowe</Heading>
           </CardHeader>
           <CardBody>
-            <FormControl>
-              <FormLabel>Cena</FormLabel>
-              <Input type="number" {...register('price')} />
-              {errors.price && <span>Pole wymagane</span>}
-            </FormControl>
-
-            <FormControl mt="2">
-              <FormLabel>Powierzchnia w m2</FormLabel>
-              <Input type="number" {...register('livingArea')} />
-            </FormControl>
+            {formFieldsIds.map((x) => (
+              <FormControl mb="2">
+                <FormLabel>{formFields[x]}</FormLabel>
+                <Input type="number" {...register(x)} />
+              </FormControl>
+            ))}
           </CardBody>
         </Card>
 
-        <Card mt="2">
+        <Card>
           <CardHeader>
             <Heading size="md">Dane wyjściowe</Heading>
           </CardHeader>
           <CardBody>
-            <Text>Wkład własny 20%: {downPayment}</Text>
-            <Text>Cena za m2: {pricePerSquareMeter}</Text>
+            <Text>Wkład własny 20%: {formatPrice(downPayment)}</Text>
+            <Text>Cena za m2: {formatPrice(pricePerSquareMeter)}</Text>
+            <Text>Wysokość kredytu: {formatPrice(mortgage)}</Text>
+            <Text>
+              Wkład własny + remont:{' '}
+              {formatPrice(downPayment + renovationCosts)}
+            </Text>
           </CardBody>
         </Card>
       </VStack>
